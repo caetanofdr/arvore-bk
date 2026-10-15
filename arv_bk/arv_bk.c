@@ -129,6 +129,17 @@ static int dist_levenshtein(const char *a, const char *b)
     return dist;
 }
 
+static No *arv_bk_acha_filho(No *pai, int peso)
+{
+    No *filho = pai->filho;
+
+    while (filho != NULL && filho->peso != peso) {
+        filho = filho->irmao;
+    }
+
+    return filho;
+}
+
 Arv_bk arv_bk_cria(void)
 {
     Arv_bk a = (Arv_bk) malloc(sizeof(struct arv_bk));
@@ -146,4 +157,46 @@ void arv_bk_destroi(Arv_bk a)
 
     arv_bk_destroi_nos(a->raiz);
     free(a);
+}
+
+int arv_bk_insere(Arv_bk a, const char *s)
+{
+    if (a == NULL) return 0;
+    if (s == NULL) return 0;
+
+    if (a->raiz == NULL) {
+        a->raiz = arv_bk_cria_no(s, 0);
+        a->tamanho = 1;
+        return 1;
+    }
+
+    No *atual = a->raiz;
+    int d = dist_levenshtein(atual->palavra, s);
+
+    while (d != 0) {
+        No *filho = arv_bk_acha_filho(atual, d);
+
+        if (filho == NULL) {
+            No *novo = arv_bk_cria_no(s, d);
+            novo->irmao = atual->filho;
+            atual->filho = novo;
+            a->tamanho++;
+            return 1;
+        }
+
+        atual = filho;
+        d = dist_levenshtein(atual->palavra, s);
+    }
+
+    return 0;
+}
+
+int arv_bk_remove(Arv_bk a, const char *s)
+{
+    return 0;
+}
+
+char **arv_bk_busca(Arv_bk a, const char *s, int dist_max, int *quant)
+{
+    return 'a';
 }

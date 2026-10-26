@@ -215,9 +215,104 @@ int arv_bk_insere(Arv_bk a, const char *s)
     return 0;
 }
 
+static void arv_bk_insere_no(Arv_bk a, No *novo)
+{
+    novo->filho = NULL;
+    novo->irmao = NULL;
+    novo->peso = 0;
+
+    if (a->raiz == NULL)
+    {
+        a->raiz = novo;
+        return;
+    }
+
+    No *atual = a->raiz;
+    int d = dist_levenshtein(atual->palavra, novo->palavra);
+
+    while (1)
+    {
+        if (d == 0) 
+        {
+            arv_bk_destroi_no(novo);
+            a->tamanho--;
+            return;
+        }
+
+        No *filho = arv_bk_acha_filho(atual, d);
+
+        if (filho == NULL)
+        {
+            novo->peso = d;
+            novo->irmao = atual->filho;
+            atual->filho = novo;
+            return;
+        }
+
+        atual = filho;
+        d = dist_levenshtein(atual->palavra, novo->palavra);
+    }
+}
+
+static void arv_bk_reinsere_nos(Arv_bk a, No *n)
+{
+    while (n != NULL)
+    {
+        No *filhos = n->filho;
+        No *prox = n->irmao;
+
+        arv_bk_insere_no(a, n);
+        arv_bk_reinsere_nos(a, filhos);
+
+        n = prox;
+    }
+}
+
+static int arv_bk_remove_aux(Arv_bk a, No **link, const char *s)
+{
+    if (link == NULL || *link == NULL)
+        return 0;
+
+    No *atual = *link;
+    int d = dist_levenshtein(atual->palavra, s);
+
+    if (d == 0)
+    {
+        No *filhos = atual->filho;
+
+        *link = atual->irmao; 
+        atual->filho = NULL;
+        atual->irmao = NULL;
+
+        arv_bk_destroi_no(atual);
+        a->tamanho--;
+
+        arv_bk_reinsere_nos(a, filhos);
+        return 1;
+    }
+
+    No **prox = &atual->filho;
+
+    while (*prox != NULL)
+    {
+        if ((*prox)->peso == d)
+            return arv_bk_remove_aux(a, prox, s);
+
+        prox = &(*prox)->irmao;
+    }
+
+    return 0;
+}
+
 int arv_bk_remove(Arv_bk a, const char *s)
 {
-    return 0;
+    if (a == NULL || s == NULL)
+        return 0;
+
+    if (a->raiz == NULL)
+        return 0;
+
+    return arv_bk_remove_aux(a, &a->raiz, s);
 }
 
 static void arv_bk_busca_aux(No *atual, const char *s, int dist_max, char **resultados, int *quant)

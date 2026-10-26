@@ -13,4 +13,6 @@ int arv_bk_remove(Arv_bk a, const char *s);
 
 char **arv_bk_busca(Arv_bk a, const char *s, int dist_max, int *quant);
 
+void arv_bk_destroi_busca(char **resultados, int quant);
+
 #endif

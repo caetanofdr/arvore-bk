@@ -17,6 +17,7 @@ struct arv_bk
 {
     No *raiz;
     int tamanho;
+    int visitados;
 };
 
 static void verifica_memoria(void *p)
@@ -164,6 +165,7 @@ Arv_bk arv_bk_cria(void)
 
     a->raiz = NULL;
     a->tamanho = 0;
+    a->visitados = 0;
 
     return a;
 }
@@ -300,9 +302,11 @@ int arv_bk_remove(Arv_bk a, const char *s)
     return arv_bk_remove_aux(a, &a->raiz, s);
 }
 
-static void arv_bk_busca_aux(No *atual, const char *s, int dist_max, char **resultados, int *quant)
+static void arv_bk_busca_aux(No *atual, const char *s, int dist_max, char **resultados, int *quant, int *visitados)
 {
     if (atual == NULL) return;
+
+    (*visitados)++;
 
     int d = dist_levenshtein(s, atual->palavra);
 
@@ -320,7 +324,7 @@ static void arv_bk_busca_aux(No *atual, const char *s, int dist_max, char **resu
 
     while (filho != NULL && filho->peso <= d + dist_max) {
         if (filho->peso >= d - dist_max) {
-            arv_bk_busca_aux(filho, s, dist_max, resultados, quant);
+            arv_bk_busca_aux(filho, s, dist_max, resultados, quant, visitados);
         }
 
         filho = filho->irmao;
@@ -334,6 +338,9 @@ char **arv_bk_busca(Arv_bk a, const char *s, int dist_max, int *quant)
     *quant = 0;
 
     if (a == NULL) return NULL;
+
+    a->visitados = 0;
+
     if (s == NULL) return NULL;
     if (dist_max < 0) return NULL;
 
@@ -342,7 +349,7 @@ char **arv_bk_busca(Arv_bk a, const char *s, int dist_max, int *quant)
     char **resultados = (char**) malloc(a->tamanho * sizeof(char*));
     verifica_memoria(resultados);
 
-    arv_bk_busca_aux(a->raiz, s, dist_max, resultados, quant);
+    arv_bk_busca_aux(a->raiz, s, dist_max, resultados, quant, &a->visitados);
 
     if (*quant == 0) {
         free(resultados);
@@ -350,6 +357,20 @@ char **arv_bk_busca(Arv_bk a, const char *s, int dist_max, int *quant)
     }
 
     return resultados;
+}
+
+int arv_bk_tamanho(Arv_bk a)
+{
+    if (a == NULL) return 0;
+
+    return a->tamanho;
+}
+
+int arv_bk_visitados(Arv_bk a)
+{
+    if (a == NULL) return 0;
+
+    return a->visitados;
 }
 
 void arv_bk_destroi_busca(char **resultados, int quant)
@@ -404,11 +425,4 @@ void arv_bk_imprime(Arv_bk a)
     arv_bk_imprime_aux(a->raiz->filho, 0, continua);
 
     free(continua);
-}
-
-int arv_bk_tamanho(Arv_bk a)
-{
-    if (a == NULL) return 0;
-
-    return a->tamanho;
 }

@@ -15,4 +15,8 @@ char **arv_bk_busca(Arv_bk a, const char *s, int dist_max, int *quant);
 
 void arv_bk_destroi_busca(char **resultados, int quant);
 
+void arv_bk_imprime(Arv_bk a);
+
+int arv_bk_tamanho(Arv_bk a);
+
 #endif

@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdbool.h>
 
 typedef struct no
 {
@@ -21,6 +23,7 @@ static void verifica_memoria(void *p)
 {
     if (p != NULL) return;
 
+    fprintf(stderr, "Erro: memoria insuficiente.\n");
     exit(EXIT_FAILURE);
 }
 
@@ -82,13 +85,13 @@ static void dist_destroi_matriz(int **d, int lin)
     free(d);
 }
 
-static int **dist_cria_matriz(int lin, int cul)
+static int **dist_cria_matriz(int lin, int col)
 {
     int **d = (int**) malloc(lin * sizeof(int*));
     verifica_memoria(d);
 
     for (int i = 0; i < lin; i++) {
-        d[i] = (int*) malloc(cul * sizeof(int));
+        d[i] = (int*) malloc(col * sizeof(int));
         if (d[i] == NULL) {
             dist_destroi_matriz(d, i);
             verifica_memoria(NULL);
@@ -101,16 +104,16 @@ static int **dist_cria_matriz(int lin, int cul)
 static int dist_levenshtein(const char *a, const char *b)
 {
     int lin = strlen(a) + 1;
-    int cul = strlen(b) + 1;
+    int col = strlen(b) + 1;
 
-    int **d = dist_cria_matriz(lin, cul);
+    int **d = dist_cria_matriz(lin, col);
     verifica_memoria(d);
 
     for (int i = 0; i < lin; i++) d[i][0] = i;
-    for (int j = 0; j < cul; j++) d[0][j] = j;
+    for (int j = 0; j < col; j++) d[0][j] = j;
 
     for (int i = 1; i < lin; i++) {
-        for (int j = 1; j < cul; j++) {
+        for (int j = 1; j < col; j++) {
             int custo;
 
             if (a[i - 1] == b[j - 1]) custo = 0;
@@ -124,7 +127,7 @@ static int dist_levenshtein(const char *a, const char *b)
         }
     }
 
-    int dist = d[lin - 1][cul - 1];
+    int dist = d[lin - 1][col - 1];
     dist_destroi_matriz(d, lin);
     return dist;
 }
@@ -133,11 +136,25 @@ static No *arv_bk_acha_filho(No *pai, int peso)
 {
     No *filho = pai->filho;
 
-    while (filho != NULL && filho->peso != peso) {
+    while (filho != NULL && filho->peso < peso) {
         filho = filho->irmao;
     }
 
-    return filho;
+    if (filho != NULL && filho->peso == peso) return filho;
+
+    return NULL;
+}
+
+static void arv_bk_liga_filho(No *pai, No *novo)
+{
+    No **link = &pai->filho;
+
+    while (*link != NULL && (*link)->peso < novo->peso) {
+        link = &(*link)->irmao;
+    }
+
+    novo->irmao = *link;
+    *link = novo;
 }
 
 Arv_bk arv_bk_cria(void)
@@ -166,6 +183,8 @@ int arv_bk_insere(Arv_bk a, const char *s)
 
     if (a->raiz == NULL) {
         a->raiz = arv_bk_cria_no(s, 0);
+        if (a->raiz == NULL) return 0;
+
         a->tamanho = 1;
         return 1;
     }
@@ -178,8 +197,9 @@ int arv_bk_insere(Arv_bk a, const char *s)
 
         if (filho == NULL) {
             No *novo = arv_bk_cria_no(s, d);
-            novo->irmao = atual->filho;
-            atual->filho = novo;
+            if (novo == NULL) return 0;
+
+            arv_bk_liga_filho(atual, novo);
             a->tamanho++;
             return 1;
         }
@@ -216,8 +236,7 @@ static void arv_bk_insere_no(Arv_bk a, No *novo)
 
         if (filho == NULL) {
             novo->peso = d;
-            novo->irmao = atual->filho;
-            atual->filho = novo;
+            arv_bk_liga_filho(atual, novo);
             return;
         }
 
@@ -241,7 +260,6 @@ static void arv_bk_reinsere_nos(Arv_bk a, No *n)
 
 static int arv_bk_remove_aux(Arv_bk a, No **link, const char *s)
 {
-    if (link == NULL) return 0;
     if (*link == NULL) return 0;
 
     No *atual = *link;
@@ -263,7 +281,7 @@ static int arv_bk_remove_aux(Arv_bk a, No **link, const char *s)
 
     No **prox = &atual->filho;
 
-    while (*prox != NULL) {
+    while (*prox != NULL && (*prox)->peso <= d) {
         if ((*prox)->peso == d) return arv_bk_remove_aux(a, prox, s);
 
         prox = &(*prox)->irmao;
@@ -300,8 +318,8 @@ static void arv_bk_busca_aux(No *atual, const char *s, int dist_max, char **resu
 
     No *filho = atual->filho;
 
-    while (filho != NULL) {
-        if (filho->peso >= d - dist_max && filho->peso <= d + dist_max) {
+    while (filho != NULL && filho->peso <= d + dist_max) {
+        if (filho->peso >= d - dist_max) {
             arv_bk_busca_aux(filho, s, dist_max, resultados, quant);
         }
 
@@ -320,7 +338,6 @@ char **arv_bk_busca(Arv_bk a, const char *s, int dist_max, int *quant)
     if (dist_max < 0) return NULL;
 
     if (a->raiz == NULL) return NULL;
-    if (a->tamanho == 0) return NULL;
 
     char **resultados = (char**) malloc(a->tamanho * sizeof(char*));
     verifica_memoria(resultados);
@@ -344,4 +361,54 @@ void arv_bk_destroi_busca(char **resultados, int quant)
     }
 
     free(resultados);
+}
+
+static void arv_bk_imprime_aux(No *no, int nivel, bool continua[])
+{
+    No *p = no;
+
+    while (p != NULL) {
+        for (int i = 0; i < nivel; i++) {
+            if (continua[i]) printf("│   ");
+            else printf("    ");
+        }
+
+        if (p->irmao != NULL) {
+            printf("├── ");
+        } else {
+            printf("└── ");
+        }
+
+        printf("(%d) %s\n", p->peso, p->palavra);
+
+        continua[nivel] = p->irmao != NULL;
+        arv_bk_imprime_aux(p->filho, nivel + 1, continua);
+        p = p->irmao;
+    }
+}
+
+void arv_bk_imprime(Arv_bk a)
+{
+    if (a == NULL) return;
+
+    if (a->raiz == NULL) {
+        printf("A arvore esta vazia.\n");
+        return;
+    }
+
+    printf("%s\n", a->raiz->palavra);
+
+    bool *continua = (bool*) malloc(a->tamanho * sizeof(bool));
+    verifica_memoria(continua);
+
+    arv_bk_imprime_aux(a->raiz->filho, 0, continua);
+
+    free(continua);
+}
+
+int arv_bk_tamanho(Arv_bk a)
+{
+    if (a == NULL) return 0;
+
+    return a->tamanho;
 }

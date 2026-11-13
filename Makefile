@@ -1,9 +1,9 @@
+
 CC = cc
 CFLAGS = -std=c99 -Wall -Wextra -pedantic -Iarv_bk
 SANITIZE = -g -fsanitize=address,undefined -fno-omit-frame-pointer
 
 EXEC = demo
-OBJS = main.o arv_bk/arv_bk.o
 
 SO := $(shell uname -s)
 
@@ -15,14 +15,8 @@ endif
 
 all: $(EXEC)
 
-$(EXEC): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(EXEC)
-
-main.o: main.c arv_bk/arv_bk.h
-	$(CC) $(CFLAGS) -c main.c -o main.o
-
-arv_bk/arv_bk.o: arv_bk/arv_bk.c arv_bk/arv_bk.h
-	$(CC) $(CFLAGS) -c arv_bk/arv_bk.c -o arv_bk/arv_bk.o
+$(EXEC): main.c arv_bk/arv_bk.c arv_bk/arv_bk.h
+	$(CC) $(CFLAGS) main.c arv_bk/arv_bk.c -o $(EXEC)
 
 run: $(EXEC)
 	./$(EXEC)
@@ -36,6 +30,6 @@ memoria: clean
 	$(VERIFICA_MEMORIA)
 
 clean:
-	rm -f $(EXEC) $(OBJS)
+	rm -f $(EXEC)
 
 .PHONY: all run debug memoria clean

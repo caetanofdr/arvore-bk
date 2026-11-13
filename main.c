@@ -62,25 +62,14 @@ void teste_corretor(void)
 
 // FIM DO CORRETOR
 
+
 static void pausa(void)
 {
-    printf("\n[Aperte Enter para continuar]");
+    printf("\n[Enter para continuar]");
     fflush(stdout);
 
-    int c = getchar();
-
-    while (c != '\n' && c != EOF)
-        c = getchar();
-}
-
-static void imprime_quant(int quant)
-{
-    if (quant == 0)
-        printf("Nenhuma palavra encontrada");
-    else if (quant == 1)
-        printf("Foi encontrada 1 palavra");
-    else
-        printf("Foram encontradas %d palavras", quant);
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
 }
 
 static void busca_e_imprime(Arv_bk a, const char *s, int dist)
@@ -88,15 +77,12 @@ static void busca_e_imprime(Arv_bk a, const char *s, int dist)
     int quant = 0;
     char **busca = arv_bk_busca(a, s, dist, &quant);
 
-    printf("\nBuscando \"%s\" com distancia %d\n", s, dist);
+    printf("\nBusca: \"%s\" | Distancia: %d\n", s, dist);
+    printf("Resultados: %d | Nos visitados: %d/%d\n",
+           quant, arv_bk_visitados(a), arv_bk_tamanho(a));
 
-    imprime_quant(quant);
-
-    printf(" (visitou %d de %d nos):\n",
-           arv_bk_visitados(a), arv_bk_tamanho(a));
-
-    for (int j = 0; j < quant; j++)
-        printf("- %s\n", busca[j]);
+    for (int i = 0; i < quant; i++)
+        printf("- %s\n", busca[i]);
 
     arv_bk_destroi_busca(busca, quant);
 }
@@ -105,120 +91,82 @@ static void teste_insercao(Arv_bk a)
 {
     const char *palavras[] = {
         "gato", "gatos", "bola", "pato",
-        "gado", "mola", "mole", "mato"};
+        "gado", "mola", "mole", "mato"
+    };
 
-    int n = sizeof(palavras) / sizeof(palavras[0]);
+    printf("\n===== INSERCAO =====\n");
 
-    printf("\n======= TESTE DE INSERCAO =======\n");
-
-    printf("\nInserindo as palavras:\n");
-
-    for (int i = 0; i < n - 1; i++)
+    for (int i = 0; i < 8; i++)
     {
-        printf("%s\n", palavras[i]);
+        printf("Inserindo: %s\n", palavras[i]);
         arv_bk_insere(a, palavras[i]);
     }
 
-    printf("\nArvore apos as primeiras insercoes:\n");
+    printf("\nArvore resultante:\n");
     arv_bk_imprime(a);
 
-    printf("\nInserindo \"%s\":\n", palavras[n - 1]);
-
-    arv_bk_insere(a, palavras[n - 1]);
-
-    arv_bk_imprime(a);
-
-    printf("\nInserindo \"gato\" novamente: %d\n",
-           arv_bk_insere(a, "gato"));
+    printf("\nTentativa de inserir duplicata:\n");
+    printf("Resultado: %d\n", arv_bk_insere(a, "gato"));
 
     printf("Total de palavras: %d\n", arv_bk_tamanho(a));
 }
 
 static void teste_busca(Arv_bk a)
 {
-    printf("\n======= TESTE DE BUSCA =======\n");
-
-    printf("\n--- Diferentes distancias ---\n");
+    printf("\n===== BUSCA =====\n");
 
     busca_e_imprime(a, "gato", 0);
     busca_e_imprime(a, "gato", 1);
     busca_e_imprime(a, "gato", 2);
-
-    printf("\n--- Palavras com erros ---\n");
-
     busca_e_imprime(a, "gata", 1);
     busca_e_imprime(a, "bolo", 2);
-
-    printf("\n--- Busca sem resultados ---\n");
-
     busca_e_imprime(a, "casa", 1);
-}
-
-static void remove_e_imprime(Arv_bk a, const char *s)
-{
-    printf("\nRemovendo \"%s\": %d\n",
-           s, arv_bk_remove(a, s));
-
-    printf("\nArvore atual:\n");
-    arv_bk_imprime(a);
-
-    printf("\nTotal de palavras: %d\n", arv_bk_tamanho(a));
 }
 
 static void teste_remocao(Arv_bk a)
 {
-    printf("\n======= TESTE DE REMOCAO =======\n");
+    const char *palavras[] = {
+        "mato", "gatos", "gato"
+    };
 
-    printf("\n--- Remocao de folha ---\n");
-    remove_e_imprime(a, "mato");
+    const char *tipos[] = {
+        "folha", "no interno", "raiz"
+    };
 
-    printf("\n--- Remocao de no interno ---\n");
-    remove_e_imprime(a, "gatos");
+    printf("\n===== REMOCAO =====\n");
 
-    printf("\n--- Remocao da raiz ---\n");
-    remove_e_imprime(a, "gato");
+    for (int i = 0; i < 3; i++)
+    {
+        printf("\nRemovendo %s (%s): %d\n",
+               palavras[i], tipos[i],
+               arv_bk_remove(a, palavras[i]));
 
-    printf("\n--- Remocao de palavra inexistente ---\n");
-    remove_e_imprime(a, "casa");
+        arv_bk_imprime(a);
+    }
 
-    printf("\n--- Buscas apos as remocoes ---\n");
-
-    busca_e_imprime(a, "gata", 1);
-    busca_e_imprime(a, "pata", 1);
+    printf("\nTotal de palavras: %d\n",
+           arv_bk_tamanho(a));
 }
 
 int main(void)
 {
     Arv_bk a = arv_bk_cria();
 
-    printf("====================================\n");
-    printf("       DEMONSTRACAO ARVORE BK\n");
-    printf("====================================\n");
-
-    /* Insercao */
+    printf("===== DEMONSTRACAO ARVORE BK =====\n");
 
     teste_insercao(a);
     pausa();
 
-    /* Busca */
-
     teste_busca(a);
     pausa();
-
-    /* Remocao */
 
     teste_remocao(a);
     pausa();
 
     teste_corretor();
 
-    /* Finalizacao */
-
-    printf("\n====================================\n");
-    printf("       FIM DA DEMONSTRACAO\n");
-    printf("====================================\n");
+    printf("\n===== FIM DA DEMONSTRACAO =====\n");
 
     arv_bk_destroi(a);
-
     return 0;
 }

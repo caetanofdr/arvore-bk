@@ -6,6 +6,8 @@ Trabalho prático da disciplina **Estruturas de Dados** do curso de Ciência da 
 
 **Grupo:** Caetano Facco, Tonny Rettore e Tiago Perleberg.
 
+📑 **[Slides da apresentação (PDF)](slides-apresentacao/slides-apresentacao.pdf)**: a explicação completa da árvore BK, com os exemplos passo a passo de inserção, remoção e busca.
+
 ---
 
 ## Sumário
@@ -172,6 +174,8 @@ O desempenho depende muito da **forma da árvore** (que depende da ordem de inse
 ├── arv_bk/
 │   ├── arv_bk.h   # interface pública do TAD
 │   └── arv_bk.c   # implementação
+├── slides-apresentacao/
+│   └── slides-apresentacao.pdf   # slides da apresentação
 ├── main.c         # demonstração
 └── Makefile
 ```

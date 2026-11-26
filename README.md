@@ -12,6 +12,7 @@ Trabalho prático da disciplina **Estruturas de Dados** do curso de Ciência da 
 
 ## Sumário
 
+- [Sobre o trabalho](#sobre-o-trabalho)
 - [O que é uma árvore BK](#o-que-é-uma-árvore-bk)
 - [Como compilar e executar](#como-compilar-e-executar)
 - [Interface do TAD](#interface-do-tad)
@@ -21,6 +22,16 @@ Trabalho prático da disciplina **Estruturas de Dados** do curso de Ciência da 
 - [Limitações](#limitações)
 - [Estrutura do repositório](#estrutura-do-repositório)
 - [Referências](#referências)
+
+---
+
+## Sobre o trabalho
+
+A proposta da disciplina era que cada grupo, de até três integrantes, escolhesse uma estrutura de dados para indexação e busca eficiente e implementasse o TAD correspondente, com as operações de **inserção**, **remoção** e **busca**. O tipo de dado manipulado ficava a critério do grupo.
+
+Cada grupo precisava de uma estrutura diferente, que não tivesse sido vista em aula nem escolhida na edição anterior da disciplina. Nosso grupo escolheu a árvore BK, trabalhando com palavras (strings) e com a distância de Levenshtein.
+
+A entrega consistia no código-fonte, com exemplos de uso, e nos slides de uma apresentação com três partes: a fundamentação teórica da estrutura, os aspectos técnicos da implementação e uma demonstração prática das operações.
 
 ---
 
